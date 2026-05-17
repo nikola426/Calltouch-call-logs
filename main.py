@@ -1,6 +1,16 @@
 import openpyxl
+
 from datetime import datetime
+import os
 import sys
+
+
+def list_xlsx_files():
+    """
+    Возвращает список всех .xlsx файлов в текущей папке.
+    """
+
+    return [f for f in os.listdir('.') if f.endswith('.xlsx')]
 
 
 def process_file(input_file, output_file=None):
@@ -108,13 +118,7 @@ def process_file(input_file, output_file=None):
 
 
 if __name__ == "__main__":
-    # Если передан аргумент командной строки – используем его как имя входного файла
-    if len(sys.argv) > 1:
-        input_filename = sys.argv[1]
-        output_filename = sys.argv[2] if len(sys.argv) > 2 else None
-        process_file(input_filename, output_filename)
-    else:
-        # Имя файла по умолчанию (можно изменить)
-        default_input = "Calltouch_1062_EXEED_ЦЕНТР_ДВАРИС_ЮГ_2026-05-08_2026-05-11_Журнал_звонков_filter.xlsx"
-        print(f"Используется файл по умолчанию: {default_input}")
-        process_file(default_input)
+    call_log_files = list_xlsx_files()
+
+    for filename in call_log_files:
+        process_file(filename)
