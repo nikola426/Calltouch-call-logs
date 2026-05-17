@@ -41,7 +41,6 @@ def process_file(input_file, output_file=None):
         "utm_source",
         "utm_medium",
         "utm_campaign",
-        "Ключевой запрос",
         "Дата",
         "Длительность",
         "Ожидание",
