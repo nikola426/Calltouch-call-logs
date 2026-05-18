@@ -112,12 +112,15 @@ def process_file(input_file, output_file=None):
         else:
             output_file = input_file + '_filtered.xlsx'
 
-    new_wb.save(output_file)
+    new_wb.save(f'./Результат/{output_file}')
     print(f"Обработка завершена. Результат сохранён в {output_file}")
 
 
 if __name__ == "__main__":
     call_log_files = list_xlsx_files()
+
+    if not os.path.isdir("Результат"):
+        os.mkdir("Результат")
 
     for filename in call_log_files:
         process_file(filename)
