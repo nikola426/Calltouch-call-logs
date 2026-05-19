@@ -1,4 +1,5 @@
 import openpyxl
+from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
 
 import os
 import sys
@@ -96,14 +97,34 @@ def process_file(input_file):
     # Сортируем строки по возрастанию даты
     data_rows.sort(key=get_datetime)
 
+    # Определяем цвет ячейки
+    fill_cell = PatternFill(start_color="ffaaaa", end_color="ffaaaa", fill_type="solid")
+
+    # Определяем шрифт ячейки
+    font_style = Font(name="Calibri", size=11)
+
+    # Определяем стиль линии и цвет для всех сторон
+    thin_border = Side(border_style="thin", color="000000")  # черная тонкая линия
+
+    # Применяем единый стиль ко всем границам
+    border = Border(left=thin_border, right=thin_border, top=thin_border, bottom=thin_border)
+
+    # Определяем расположение текста по центру ячейки
+    center_alignment = Alignment(horizontal="center", vertical="center")
+
     # Записываем заголовки
     for col_idx, name in enumerate(keep_columns_names, start=1):
-        sheet.cell(row=1, column=col_idx, value=name)
+        cell = sheet.cell(row=1, column=col_idx, value=name)
+        cell.alignment = center_alignment
 
     # Записываем данные
     for row_idx, row_data in enumerate(data_rows, start=2):
         for col_idx, value in enumerate(row_data, start=1):
-            sheet.cell(row=row_idx, column=col_idx, value=value)
+            cell = sheet.cell(row=row_idx, column=col_idx, value=value)
+            cell.fill = fill_cell
+            cell.font = font_style
+            cell.border = border
+            cell.alignment = center_alignment
 
     wb.save(output_file_path)
     print(f"Обработка завершена. Результат сохранён в {output_file_path}")
