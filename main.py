@@ -1,17 +1,39 @@
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
+from loguru import logger
 
 import os
 import sys
 from datetime import datetime
 
 
+logger.remove()  # Удаляем стандартный обработчик
+logger.add(
+    sys.stdout,
+    format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+    level="INFO"
+)
+logger.add(
+    "app.log",
+    rotation="1 MB",
+    retention="15 days",
+    format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}",
+    level="DEBUG"
+)
+
+
 def list_xlsx_files() -> list:
     """
     Возвращает список всех .xlsx файлов в текущей папке.
     """
+    files = [f for f in os.listdir('./Исходники') if f.endswith('.xlsx')]
 
-    return [f for f in os.listdir('./Исходники') if f.endswith('.xlsx')]
+    if not files:
+        logger.warning(f"В папке Исходники нет .xlsx файлов.")
+        input('Нажмите Enter для выхода')
+        sys.exit()
+
+    return files
 
 
 def process_file(input_file):
@@ -25,19 +47,23 @@ def process_file(input_file):
     def get_datetime(row):
         date_val = row[date_index_in_keep]
         if date_val is None:
+            logger.debug(f"Пустое значение даты в строке: {row}")
             return datetime.min
+
         # Если уже объект datetime, возвращаем как есть
         if isinstance(date_val, datetime):
             return date_val
+
         # Иначе пытаемся преобразовать строку
         try:
             return datetime.strptime(str(date_val), "%Y-%m-%d %H:%M:%S")
         except ValueError:
+
             # на случай других форматов, например, только дата
             try:
                 return datetime.strptime(str(date_val), "%Y-%m-%d")
             except ValueError:
-                print(f"Не удалось распознать дату: {date_val}")
+                logger.warning(f"Не удалось распознать дату: '{date_val}' в строке {row}")
                 return datetime.min
 
     # Определяем имя выходного файла
@@ -47,8 +73,12 @@ def process_file(input_file):
     output_file_path = f'./Результат/{output_file}'
 
     # Загружаем исходный файл
-    wb = openpyxl.load_workbook(f'./Исходники/{input_file}')
-    sheet = wb.active  # берём первый лист
+    try:
+        wb = openpyxl.load_workbook(f'./Исходники/{input_file}')
+        sheet = wb.active   # берём первый лист
+    except Exception as e:
+        logger.error(f"Ошибка загрузки файла {input_file}: {e}")
+        raise
 
     # Список заголовков из первой строки
     headers = []
@@ -79,8 +109,8 @@ def process_file(input_file):
             idx = headers.index(name) + 1  # +1 потому что openpyxl индексирует с 1
             keep_indices.append(idx)
         except ValueError:
-            print(f"Ошибка: столбец '{name}' не найден в файле.")
-            sys.exit(1)
+            logger.error(f"Столбец '{name}' не найден в файле {input_file}. Доступные заголовки: {headers}")
+            raise ValueError(f"Столбец '{name}' отсутствует")
 
     # Считываем все строки данных (начиная со 2-й строки)
     data_rows = []
@@ -127,7 +157,13 @@ def process_file(input_file):
             cell.alignment = center_alignment
 
     wb.save(output_file_path)
-    print(f"Обработка завершена. Результат сохранён в {output_file_path}")
+
+    try:
+        wb.save(output_file_path)
+        logger.success(f"Обработка завершена. Результат сохранён в {output_file_path}")
+    except Exception as e:
+        logger.error(f"Ошибка сохранения файла {output_file_path}: {e}")
+        raise
 
 
 if __name__ == "__main__":
@@ -135,10 +171,14 @@ if __name__ == "__main__":
     if not os.path.isdir("Результат"):
         os.mkdir("Результат")
 
-    if not os.path.isdir("Исходники"):
-        os.mkdir("Исходники")
-
     call_log_files = list_xlsx_files()
 
     for filename in call_log_files:
-        process_file(filename)
+        try:
+            process_file(filename)
+        except Exception as e:
+            logger.error(f"Не удалось обработать файл {filename}: {e}. Пропускаем...")
+            continue
+
+    logger.info("=== ПРОГРАММА ЗАВЕРШЕНА ===")
+    input('Нажмите Enter для выхода')
