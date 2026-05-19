@@ -11,7 +11,7 @@ def list_xlsx_files() -> list:
     Возвращает список всех .xlsx файлов в текущей папке.
     """
 
-    return [f for f in os.listdir('.') if f.endswith('.xlsx')]
+    return [f for f in os.listdir('./Исходники') if f.endswith('.xlsx')]
 
 
 def process_file(input_file):
@@ -40,14 +40,14 @@ def process_file(input_file):
                 print(f"Не удалось распознать дату: {date_val}")
                 return datetime.min
 
-    # Определяем имя копии рабочей книги
+    # Определяем имя выходного файла
     output_file = input_file.replace('.xlsx', '_filtered.xlsx')
 
-    # Определяем путь сохранения копии
+    # Определяем путь выходного файла
     output_file_path = f'./Результат/{output_file}'
 
-    # Загружаем копию рабочей книги
-    wb = openpyxl.load_workbook(input_file)
+    # Загружаем исходный файл
+    wb = openpyxl.load_workbook(f'./Исходники/{input_file}')
     sheet = wb.active  # берём первый лист
 
     # Список заголовков из первой строки
@@ -131,10 +131,14 @@ def process_file(input_file):
 
 
 if __name__ == "__main__":
-    call_log_files = list_xlsx_files()
 
     if not os.path.isdir("Результат"):
         os.mkdir("Результат")
+
+    if not os.path.isdir("Исходники"):
+        os.mkdir("Исходники")
+
+    call_log_files = list_xlsx_files()
 
     for filename in call_log_files:
         process_file(filename)
