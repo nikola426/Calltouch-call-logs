@@ -157,6 +157,9 @@ def process_file(input_file):
             cell.border = border
             cell.alignment = center_alignment
 
+    # Удаляем оставшиеся лишние столбцы
+    sheet.delete_cols(12, 43)
+
     try:
         wb.save(output_file_path)
     except Exception as e:
