@@ -75,10 +75,11 @@ def process_file(input_file):
     # Загружаем исходный файл
     try:
         wb = openpyxl.load_workbook(f'./Исходники/{input_file}')
-        sheet = wb.active   # берём первый лист
     except Exception as e:
         logger.error(f"Ошибка загрузки файла {input_file}: {e}")
         raise
+
+    sheet = wb.active  # берём первый лист
 
     # Список заголовков из первой строки
     headers = []
@@ -156,14 +157,13 @@ def process_file(input_file):
             cell.border = border
             cell.alignment = center_alignment
 
-    wb.save(output_file_path)
-
     try:
         wb.save(output_file_path)
-        logger.success(f"Обработка завершена. Результат сохранён в {output_file_path}")
     except Exception as e:
         logger.error(f"Ошибка сохранения файла {output_file_path}: {e}")
         raise
+
+    logger.success(f"Обработка завершена. Результат сохранён в {output_file_path}")
 
 
 if __name__ == "__main__":
