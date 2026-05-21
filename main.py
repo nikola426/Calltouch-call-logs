@@ -44,28 +44,6 @@ def process_file(input_file):
         input_file (str): путь к исходному файлу Excel.
     """
 
-    def get_datetime(row):
-        date_val = row[date_index_in_keep]
-        if date_val is None:
-            logger.debug(f"Пустое значение даты в строке: {row}")
-            return datetime.min
-
-        # Если уже объект datetime, возвращаем как есть
-        if isinstance(date_val, datetime):
-            return date_val
-
-        # Иначе пытаемся преобразовать строку
-        try:
-            return datetime.strptime(str(date_val), "%Y-%m-%d %H:%M:%S")
-        except ValueError:
-
-            # на случай других форматов, например, только дата
-            try:
-                return datetime.strptime(str(date_val), "%Y-%m-%d")
-            except ValueError:
-                logger.warning(f"Не удалось распознать дату: '{date_val}' в строке {row}")
-                return datetime.min
-
     # Определяем имя выходного файла
     output_file = input_file.replace('.xlsx', '_filtered.xlsx')
 
@@ -126,7 +104,7 @@ def process_file(input_file):
     date_index_in_keep = keep_columns_names.index("Дата")  # позиция в списке keep_columns_names
 
     # Сортируем строки по возрастанию даты
-    data_rows.sort(key=get_datetime)
+    data_rows.sort(key=lambda row: row[date_index_in_keep])
 
     # Определяем цвет ячейки
     fill_cell = PatternFill(start_color="ffaaaa", end_color="ffaaaa", fill_type="solid")
