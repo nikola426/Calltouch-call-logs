@@ -4,7 +4,6 @@ from loguru import logger
 
 import os
 import sys
-from datetime import datetime
 
 
 logger.remove()  # Удаляем стандартный обработчик
@@ -61,7 +60,8 @@ def process_file(input_file):
 
     # Список заголовков из первой строки
     headers = []
-    for col in range(1, sheet.max_column + 1):
+    max_col = sheet.max_column
+    for col in range(1, max_col + 1):
         val = sheet.cell(row=1, column=col).value
         headers.append(val)
 
@@ -136,7 +136,7 @@ def process_file(input_file):
             cell.alignment = center_alignment
 
     # Удаляем оставшиеся лишние столбцы
-    sheet.delete_cols(12, 43)
+    sheet.delete_cols(12, max_col)
 
     try:
         wb.save(output_file_path)
